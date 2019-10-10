@@ -4,25 +4,26 @@ import argparse
 
 import numpy as np
 from skimage.io import imread, imsave
-from skimage.color import gray2rgb, rgb2gray
+from skimage.color import gray2rgb
 from skimage import img_as_float
-from skimage.transform import rotate
 
 import imageio.core.util
 
-from mine_dataset import get_dataset
+from mine_dataset import get_ds
 
 
 parser = argparse.ArgumentParser(description='Creates heat map for specified geoparams')
 parser.add_argument('--lat', nargs=2, type=float, default=[-90.0, 89.0], help='Latitude range')
 parser.add_argument('--lon', nargs=2, type=float, default=[0.0, 359.0], help='Longitude range')
 parser.add_argument('-l', '--level', type=float, default=50.0, help='Depth level')
+parser.add_argument('--name', type=str, default='color_map.jpg', help='Path for the output image')
 args = parser.parse_args()
 
 # Set geoparams from arguments
 lat = tuple(args.lat)
 lon = tuple(args.lon)
 level = args.level
+output_path = args.name
 
 
 def ignore_warnings(*args, **kwargs):
@@ -32,7 +33,7 @@ def ignore_warnings(*args, **kwargs):
 def prepare_ds_shape(ds, world_map_shape):
     """Fill rest space of dataset with zeros to be the same shape as world_map"""
     prepared_ds = np.zeros(world_map_shape, dtype=float)
-    prepared_ds[int(lon[0]):int(lon[1] + 1), int(lat[0] + 90.0):int(lat[1] + 91.0)] = ds
+    prepared_ds[int(lat[0] + 90.0):int(lat[1] + 91.0), int(lon[0]):int(lon[1] + 1)] = ds
     return prepared_ds
 
 
@@ -60,11 +61,10 @@ def main():
     # Read world map
     world_map = imread('world_map.jpg')
     world_map = img_as_float(world_map)
-    world_map = rotate(world_map, angle=90, resize=True)
-    world_map = gray2rgb(rgb2gray(world_map))
+    world_map = gray2rgb(world_map)
 
     # Set waves dataset
-    ds = get_dataset(lat, lon, level)
+    ds = get_ds(lat, lon, level)
     ds = fit_ds(ds)
     ds = prepare_ds_shape(ds, world_map.shape[:-1])
     ds = gray2rgb(ds)
@@ -72,12 +72,11 @@ def main():
 
     # Create output
     blended_map = 0.6 * ds + 0.4 * world_map
-    blended_map = rotate(blended_map, angle=-90, resize=True)
 
     # Save output
-    imsave('color_map.jpg', blended_map)
+    imsave(output_path, blended_map)
 
-    print('Congratulations! Color map was created. Check out color_map.jpg')
+    print(f'Congratulations! The color map was created. Check out {output_path}.')
 
 
 if __name__ == '__main__':

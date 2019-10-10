@@ -3,7 +3,7 @@ import re
 import numpy as np
 
 
-def __parse_dataset(content):
+def __parse_ds(content):
     dataset = content.split('\n')
     parsed_dataset = []
 
@@ -16,7 +16,7 @@ def __parse_dataset(content):
     return parsed_dataset
 
 
-def get_dataset(lat, lon, level):
+def get_ds(lat, lon, level):
     lons = [float(i) for i in range(361)]
     lats = [-90.0 + i for i in range(181)]
     levels = [
@@ -38,6 +38,8 @@ def get_dataset(lat, lon, level):
 
     r = requests.get(dataset_url)
     r.raise_for_status()
-    parsed_dataset = __parse_dataset(r.content.decode())
+    parsed_dataset = __parse_ds(r.content.decode())
+    parsed_dataset = np.array(parsed_dataset).astype(float)
+    parsed_dataset = np.transpose(parsed_dataset)
 
-    return np.array(parsed_dataset).astype(float)
+    return parsed_dataset
