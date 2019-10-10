@@ -2,11 +2,13 @@
 
 import argparse
 
-import matplotlib.pyplot as plt
 import numpy as np
-from skimage.io import imread
-from skimage.color import gray2rgb
+from skimage.io import imread, imsave
+from skimage.color import gray2rgb, rgb2gray
 from skimage import img_as_float
+from skimage.transform import rotate
+
+import imageio.core.util
 
 from mine_dataset import get_dataset
 
@@ -21,6 +23,10 @@ args = parser.parse_args()
 lat = tuple(args.lat)
 lon = tuple(args.lon)
 level = args.level
+
+
+def ignore_warnings(*args, **kwargs):
+    pass
 
 
 def prepare_ds_shape(ds, world_map_shape):
@@ -43,49 +49,35 @@ def fit_ds(ds):
     return ds
 
 
-def get_diff(im1, im2):
-    """Creates an image based on difference between im1 and im2"""
-    # Calculate the absolute difference on each channel separately
-    error_r = np.fabs(np.subtract(im1[:, :, 0], im2[:, :, 0]))
-    error_g = np.fabs(np.subtract(im1[:, :, 1], im2[:, :, 1]))
-    error_b = np.fabs(np.subtract(im1[:, :, 2], im2[:, :, 2]))
-
-    # Create diff image
-    diff_img = np.maximum(np.maximum(error_r, error_g), error_b)
-
-    return diff_img
-
-
-def combine_and_save(*images, filename='color_map.jpg'):
-    """Combines images and saves them to specified file"""
-    fig, ax = plt.subplots()
-    ax.grid(False)
-    ax.axis('off')
-    ax.get_xaxis().set_ticks([])
-    ax.get_yaxis().set_ticks([])
-
-    for i, image in enumerate(images, 1):
-        fig.add_subplot(1, len(images), i)
-        plt.imshow(image)
-        plt.axis('off')
-
-    plt.colorbar()
-    plt.savefig(filename)
+def redden_ds(ds):
+    return ds * [1, 0, 0]
 
 
 def main():
+    # Dirty hack
+    imageio.core.util._precision_warn = ignore_warnings
+
+    # Read world map
     world_map = imread('world_map.jpg')
     world_map = img_as_float(world_map)
+    world_map = rotate(world_map, angle=90, resize=True)
+    world_map = gray2rgb(rgb2gray(world_map))
 
+    # Set waves dataset
     ds = get_dataset(lat, lon, level)
     ds = fit_ds(ds)
     ds = prepare_ds_shape(ds, world_map.shape[:-1])
     ds = gray2rgb(ds)
+    ds = redden_ds(ds)
 
-    diff_map = get_diff(world_map, ds)
-    blended_map = 0.9 * ds + 0.1 * world_map
+    # Create output
+    blended_map = 0.6 * ds + 0.4 * world_map
+    blended_map = rotate(blended_map, angle=-90, resize=True)
 
-    combine_and_save(blended_map, diff_map)
+    # Save output
+    imsave('color_map.jpg', blended_map)
+
+    print('Congratulations! Color map was created. Check out color_map.jpg')
 
 
 if __name__ == '__main__':
