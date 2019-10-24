@@ -28,14 +28,15 @@ output_path = args.name
 def resize_with_extender(ds, new_shape, extender):
     """Fill rest space of dataset with filler to be the same shape as new_shape"""
     prepared_ds = np.full((181, 361), extender)
-    prepared_ds[int(lat[0] + 90.0):int(lat[1] + 91.0), int(lon[0]):int(lon[1] + 1)] = ds
+    # import pdb; pdb.set_trace()
+    prepared_ds[int(90 - lat[1]):int(91 - lat[0]), int(lon[0]):int(lon[1] + 1)] = ds
     prepared_ds = resize(prepared_ds, new_shape)
     return prepared_ds
 
 
 def main():
     # Read world map
-    world_map = imread('world_map.png', as_gray=True)
+    world_map = imread('world_map2.jpg', as_gray=True)
 
     # Set waves dataset
     ds = get(lat, lon, level)
@@ -49,7 +50,7 @@ def main():
     plt.colorbar(norm=Normalize(vmin=ds.min(), vmax=ds.max()), orientation='horizontal')
     plt.savefig(output_path, bbox_inches='tight', pad_inches=0.2)
 
-    print(f'Congratulations! The color map was created. Check out {output_path}.')
+    print(f"Congratulations! The color map was created. Check out {output_path}.")
 
 
 if __name__ == '__main__':

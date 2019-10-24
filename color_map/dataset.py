@@ -33,8 +33,9 @@ def get(lat, lon, level):
 
     level = levels.index(level)
 
+    # import pdb; pdb.set_trace()
     dataset_url = f'http://144.206.233.183/thredds/dodsC/Data/s362d.nc.ascii?\
-                    data[{level}:1:{level}][{lon_0}:1:{lon_1}][{lat_0}:1:{lat_1}]'
+                    data[{level}:1:{level}][{lon_0}:1:{lon_1}][{180 - lat_1}:1:{180 - lat_0}]'
 
     r = requests.get(dataset_url)
     r.raise_for_status()
