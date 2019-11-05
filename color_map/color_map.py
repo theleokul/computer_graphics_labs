@@ -28,6 +28,7 @@ output_path = args.name
 def resize_with_extender(ds, new_shape, extender):
     """Fill rest space of dataset with filler to be the same shape as new_shape"""
     prepared_ds = np.full((181, 361), extender)
+    # import pdb; pdb.set_trace()
     prepared_ds[int(90 - lat[1]):int(91 - lat[0]), int(lon[0]):int(lon[1] + 1)] = ds
     prepared_ds = resize(prepared_ds, new_shape)
     return prepared_ds
