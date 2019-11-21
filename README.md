@@ -11,3 +11,7 @@ and blend the heat map based on downloaded data with the world map.
 ## dilation_erosion
 
 Implement dilation and erosion and compare it with functions from some image library (Ex. scikit-image)
+
+## rotator
+
+Create rotation matrix from an arbitrary vector V and a point P. Implement it in WEBGL to rotate a figure around some vector.
